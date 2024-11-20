@@ -36,3 +36,7 @@
 *.godot
 *.dblite
 *.json
+*.os
+
+# Bin directory
+*/bin/
