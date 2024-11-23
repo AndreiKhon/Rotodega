@@ -10,11 +10,38 @@
 #include <variant>
 #include <vector>
 
+#include <concepts>
+
 namespace game {
 
-struct TestEnemy {};
+template <typename T>
+concept EnemyFeatures = requires(T enemy) {
+  { enemy.health } -> std::convertible_to<std::uint64_t>;
+  { enemy.armor } -> std::convertible_to<std::uint64_t>;
+  { enemy.shield } -> std::convertible_to<std::uint64_t>;
+  { enemy.speed } -> std::convertible_to<double>;
+};
+
+struct TestEnemy {
+  std::uint64_t health;
+  std::uint64_t armor;
+  std::uint64_t shield;
+  double speed;
+};
 
 using EnemyType = std::variant<TestEnemy>;
+
+// Check if all EnemyType alternatives have EnemyFeatures at compile time -------------------------
+template <std::size_t... i>
+inline void EnemyTest(std::index_sequence<i...>) {
+  static_assert((EnemyFeatures<decltype(std::get<i>(EnemyType{}))> && ...));
+}
+
+inline void EnemiesTest() {
+  constexpr auto size = std::variant_size_v<EnemyType>;
+  EnemyTest(std::make_index_sequence<size>{});
+}
+// ------------------------------------------------------------------------------------------------
 
 using EnemiesVector = std::vector<EnemyType>;
 
