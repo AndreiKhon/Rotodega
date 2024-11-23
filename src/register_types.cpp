@@ -18,6 +18,7 @@ void initialize_game_module(godot::ModuleInitializationLevel p_level) {
   GDREGISTER_CLASS(game::Camera);
   GDREGISTER_CLASS(game::ExtendTile);
   GDREGISTER_CLASS(game::EnemySpawner);
+  GDREGISTER_CLASS(game::Enemy);
 }
 
 void uninitialize_game_module(godot::ModuleInitializationLevel p_level) {

@@ -9,7 +9,10 @@
 #include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/classes/timer.hpp"
 #include "godot_cpp/variant/callable.hpp"
+#include "godot_cpp/variant/packed_vector2_array.hpp"
+#include "godot_cpp/variant/packed_vector3_array.hpp"
 #include "godot_cpp/variant/vector3.hpp"
+#include <format>
 
 namespace game {
 
@@ -24,49 +27,17 @@ auto EnemySpawner::_ready() -> void {
   timer->connect("timeout", godot::Callable(this, "on_timer"));
   add_child(timer);
   timer->start();
+  pathCurve.instantiate();
 }
-
-godot::StaticBody3D *TestCreateBox(godot::Vector3 size, godot::Color color) {
-  auto staticBody = memnew(godot::StaticBody3D);
-
-  auto collision3D = memnew(godot::CollisionShape3D);
-  auto shape3D = godot::Ref<godot::BoxShape3D>{};
-  shape3D.instantiate();
-  shape3D->set_size(size);
-  collision3D->set_shape(shape3D);
-
-  staticBody->add_child(collision3D);
-
-  auto mesh3D = memnew(godot::MeshInstance3D);
-  auto boxMesh = godot::Ref<godot::BoxMesh>{};
-  boxMesh.instantiate();
-  boxMesh->set_size(size);
-  auto material = godot::Ref<godot::StandardMaterial3D>{};
-  material.instantiate();
-  material->set_albedo(color);
-  material->set_transparency(godot::BaseMaterial3D::TRANSPARENCY_ALPHA);
-  boxMesh->set_material(material);
-  mesh3D->set_mesh(boxMesh);
-
-  staticBody->add_child(mesh3D);
-
-  return staticBody;
-}
-
-struct EnemyCreate {
-  auto operator()(TestEnemy) -> godot::StaticBody3D * {
-    return TestCreateBox(godot::Vector3{10.0f, 10.0f, 10.0f},
-                         godot::Color{1, 1, 1, 0.1});
-  }
-};
 
 auto EnemySpawner::on_timer() -> void {
   if (!enemies.empty()) {
-    auto *enemy = std::visit(EnemyCreate{}, enemies.back());
+    auto *enemy = memnew(Enemy);
     enemies.resize(enemies.size() - 1);
+    enemy->SetPathCurve(pathCurve);
 
     add_child(enemy);
-    enemy->set_global_position(position);
+    // enemy->set_global_position(position);
   }
 }
 
@@ -79,5 +50,14 @@ auto EnemySpawner::GetPosition() -> godot::Vector3 { return position; }
 auto EnemySpawner::SetEnemies(EnemiesVector enemies) -> void {
   this->enemies = enemies;
 }
+
+auto EnemySpawner::SetPath(godot::PackedVector3Array path) -> void {
+  auto previousPosition3d = godot::Vector3{};
+  for (std::size_t i = 0; i < path.size(); ++i) {
+    pathCurve->add_point(path[i]);
+  }
+}
+
+auto EnemySpawner::GetPath() -> godot::PackedVector3Array { return {}; }
 
 } // namespace game

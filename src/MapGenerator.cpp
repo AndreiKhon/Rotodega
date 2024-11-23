@@ -4,6 +4,7 @@
 #include "EnemySpawner.hpp"
 #include "Tile.hpp"
 #include "gdextension_interface.h"
+#include "godot_cpp/classes/a_star3d.hpp"
 #include "godot_cpp/classes/base_material3d.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/box_shape3d.hpp"
@@ -15,6 +16,7 @@
 #include "godot_cpp/classes/ref.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
+#include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/variant/callable.hpp"
 #include "godot_cpp/variant/color.hpp"
@@ -25,6 +27,7 @@
 #include <cstddef>
 #include <format>
 #include <iterator>
+#include <limits>
 #include <ranges>
 #include <string>
 #include <variant>
@@ -50,6 +53,7 @@ void MapGenerator::_bind_methods() {
 }
 
 void MapGenerator::_ready() {
+  aStar.instantiate();
   AddStartTile();
 
   constexpr auto startPosition = Position{0, 0};
@@ -57,6 +61,11 @@ void MapGenerator::_ready() {
 
   auto directions = GetAllRoads(startPosition);
   AddExtendTiles(startPosition, directions);
+
+  auto position3d = calculateTilePosition3D(startPosition);
+  aStar->add_point(lastAStarId++, position3d);
+  AddWayPoints(startPosition, directions);
+  AddEnemySpawners(startPosition, directions, aStar);
 }
 
 void MapGenerator::extend_pressed(godot::PackedInt64Array array, int integer) {
@@ -203,11 +212,13 @@ auto MapGenerator::CreateEnemySpawner() -> EnemySpawner * {
 
   return spawner;
 }
+
 auto MapGenerator::AddEnemySpawners(Position position,
-                                    DirectionsVector directions) -> void {
-  DeleteNearestSpawner(calculateTilePosition3D(position));                                      
+                                    DirectionsVector directions,
+                                    godot::Ref<godot::AStar3D> aStar) -> void {
+  DeleteNearestSpawner(calculateTilePosition3D(position)); // TODO think!
   if (directions.empty()) {
-    AddEnemySpawnerForPortal(position);
+    AddEnemySpawnerForPortal(position, aStar);
   }
 
   for (auto direction : directions) {
@@ -216,16 +227,23 @@ auto MapGenerator::AddEnemySpawners(Position position,
 
     auto position3d = CalculateEnemySpawnerPosition(position, direction);
     spawner->SetPosition(position3d);
+    auto nearestWayPointId = aStar->get_closest_point(position3d);
+    auto path = aStar->get_point_path(nearestWayPointId, 0);
+    spawner->SetPath(path);
     spawnersCount += 1;
   }
 }
 
-auto MapGenerator::AddEnemySpawnerForPortal(Position position) -> void {
+auto MapGenerator::AddEnemySpawnerForPortal(
+    Position position, godot::Ref<godot::AStar3D> aStar) -> void {
   auto spawner = CreateEnemySpawner();
   add_child(spawner);
 
   auto position3d = calculateTilePosition3D(position);
   spawner->SetPosition(position3d);
+  auto nearestWayPointId = aStar->get_closest_point(position3d);
+  const auto path = aStar->get_point_path(nearestWayPointId, 0);
+  spawner->SetPath(path);
   spawnersCount += 1;
 }
 
@@ -274,7 +292,7 @@ auto MapGenerator::DeleteNearestSpawner(godot::Vector3 position) -> void {
   auto children = get_children();
 
   EnemySpawner *spawnerToDelete = nullptr;
-  auto minDistance = position.distance_squared_to(position * 3);
+  auto minDistance = std::numeric_limits<real_t>{}.max();
 
   for (std::size_t i; i < children.size(); ++i) {
     auto *node =
@@ -290,9 +308,49 @@ auto MapGenerator::DeleteNearestSpawner(godot::Vector3 position) -> void {
     }
   }
 
-  if(spawnerToDelete) {
+  if (spawnerToDelete) {
     remove_child(spawnerToDelete);
     spawnerToDelete->queue_free();
+  }
+}
+
+auto MapGenerator::AddWayPointFrom(Position position,
+                                   Direction direction) -> void {
+  auto position3d = calculateTilePosition3D(position);
+  auto nearestWayPointId = aStar->get_closest_point(position3d);
+  aStar->add_point(lastAStarId, position3d);
+  aStar->connect_points(lastAStarId++, nearestWayPointId, false);
+}
+
+auto MapGenerator::AddWayPointTo(Position position,
+                                 Direction direction) -> void {
+  auto tileSideSize = Tile::LengthInCells * cellSize;
+  auto position3d = calculateTilePosition3D(position);
+  auto nearestWayPointId = aStar->get_closest_point(position3d);
+
+  auto positionShift = tileSideSize / 2.0f;
+  switch (direction) {
+  case Direction::Up:
+    position3d.z -= positionShift;
+    break;
+  case Direction::Left:
+    position3d.x -= positionShift;
+    break;
+  case Direction::Down:
+    position3d.z += positionShift;
+    break;
+  case Direction::Right:
+    position3d.x += positionShift;
+    break;
+  }
+
+  aStar->add_point(lastAStarId, position3d);
+  aStar->connect_points(lastAStarId++, nearestWayPointId, false);
+}
+auto MapGenerator::AddWayPoints(Position position,
+                                DirectionsVector directions) -> void {
+  for (auto direction : directions) {
+    AddWayPointTo(position, direction);
   }
 }
 
@@ -334,17 +392,20 @@ void MapGenerator::Extend(Position position, Direction direction) {
   }
   map.SetTile(neighbor, std::move(tile));
 
+  AddWayPointFrom(neighbor, GetOppositeDirection(direction));
+
   PrepairTileFor3D(neighbor);
 
-  auto directions = GetExtendRoads(neighbor, direction);
+  auto directions = GetExtendRoads(neighbor, GetOppositeDirection(direction));
+  AddWayPoints(neighbor, directions);
   if (freePositions.size() >= 1 && freeTilesCount > 0) {
     AddExtendTiles(neighbor, directions);
   }
 
   // TODO: GetNewEnemies
   auto enemies = EnemiesVector(10, TestEnemy{});
-
-  AddEnemySpawners(neighbor, directions);
+  // TODO set path to spawner or to enemy
+  AddEnemySpawners(neighbor, directions, aStar);
   UpdateEnemySpawnersEnemies(enemies);
 }
 
@@ -358,10 +419,12 @@ void MapGenerator::AddStartTile() {
       allDirections |
       std::ranges::views::drop(allDirections.size() - startDirectionsCount);
 
-  Tile tile = GenerateStartTile(
-      DirectionsVector(directions_view.begin(), directions_view.end()));
+  auto directions =
+      DirectionsVector(directions_view.begin(), directions_view.end());
+  Tile tile = GenerateStartTile(directions);
 
   map.SetTile(center, std::move(tile));
+
   // tilesForExtension.emplace_back(center);
 }
 
@@ -549,8 +612,7 @@ DirectionsVector MapGenerator::GetAllRoads(Position pos) {
 auto MapGenerator::GetExtendRoads(Position position,
                                   Direction extendFrom) -> DirectionsVector {
   auto allRoads = GetAllRoads(position);
-  const auto ret =
-      std::ranges::remove(allRoads, GetOppositeDirection(extendFrom));
+  const auto ret = std::ranges::remove(allRoads, extendFrom);
   allRoads.erase(ret.begin(), ret.end());
   return allRoads;
 }

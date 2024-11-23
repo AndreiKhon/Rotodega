@@ -7,6 +7,7 @@
 #include "EnemySpawner.hpp"
 #include "Map.hpp"
 #include "Tile.hpp"
+#include "godot_cpp/classes/a_star3d.hpp"
 #include "godot_cpp/classes/button.hpp"
 #include "godot_cpp/classes/static_body2d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
@@ -38,12 +39,14 @@ public:
 private:
   Map map;
   // std::vector<Position> tilesForExtension;
-  static constexpr std::size_t maxTilesCount =
-      15; // TODO check why generated less tiles by 1
+  std::size_t maxTilesCount = 15; // TODO check why generated less tiles by 1
   std::size_t extendTilesCount = 0;
   std::size_t spawnersCount = 0;
   // DirectionsVector startDirections;
   std::size_t startDirectionsCount = 1;
+
+  godot::Ref<godot::AStar3D> aStar;
+  std::size_t lastAStarId = 0;
 
   std::random_device randomDevice;
   std::mt19937 generator{randomDevice()};
@@ -55,6 +58,8 @@ public:
 public:
   auto SetStartDirectionsCount(std::size_t startDirectionsCount) -> void;
   auto GetStartDirectionsCount() -> std::size_t;
+  // auto SetMaxTilesCount(std::size_t maxTilesCount) -> void; //TODO
+  // auto GetMaxTilesCount() -> std::size_t;
   void Extend(Position position, Direction direction);
 
 private:
@@ -70,7 +75,8 @@ private:
   bool HasRoad(Position position, Direction direction);
   std::size_t RoadsCount(Position position);
   DirectionsVector GetAllRoads(Position position);
-  auto GetExtendRoads(Position , Direction extendFrom) -> DirectionsVector;
+  auto GetExtendRoads(Position, Direction extendFrom) -> DirectionsVector;
+  // auto
 
   Position Move(Position position, Direction direction);
   Direction GetOppositeDirection(Direction direction);
@@ -81,12 +87,18 @@ private:
   godot::Vector3
   calculateTilePosition3D(Position position); // Shoul be in an another class?
 
-  auto CreateEnemySpawner() -> EnemySpawner*;
-  auto AddEnemySpawners(Position position, DirectionsVector directions) -> void;
-  auto AddEnemySpawnerForPortal(Position position) -> void;
-  auto CalculateEnemySpawnerPosition(Position position, Direction direction) -> godot::Vector3;
-  auto UpdateEnemySpawnersEnemies(const EnemiesVector& enemies) -> void;
+  auto CreateEnemySpawner() -> EnemySpawner *;
+  auto AddEnemySpawners(Position position, DirectionsVector directions, godot::Ref<godot::AStar3D> aStar) -> void;
+
+  auto AddEnemySpawnerForPortal(Position position, godot::Ref<godot::AStar3D> aStar) -> void;
+  auto CalculateEnemySpawnerPosition(Position position,
+                                     Direction direction) -> godot::Vector3;
+  auto UpdateEnemySpawnersEnemies(const EnemiesVector &enemies) -> void;
   auto DeleteNearestSpawner(godot::Vector3 position) -> void;
+
+  auto AddWayPointFrom(Position position, Direction direction) -> void;
+  auto AddWayPointTo(Position position, Direction direction) -> void;
+  auto AddWayPoints(Position position, DirectionsVector directions) -> void;
 };
 
 // class ExtendButton : public godot::Button {

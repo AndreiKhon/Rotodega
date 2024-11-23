@@ -4,7 +4,9 @@
 
 #include "Enemy.hpp"
 #include "Tile.hpp"
+#include "godot_cpp/classes/curve3d.hpp"
 #include "godot_cpp/classes/node.hpp"
+#include "godot_cpp/variant/packed_vector3_array.hpp"
 #include "godot_cpp/variant/vector3.hpp"
 
 #include <span>
@@ -27,9 +29,12 @@ public:
   auto SetPosition(godot::Vector3 position) -> void;
   auto GetPosition() -> godot::Vector3;
   auto SetEnemies(EnemiesVector enemies) -> void;
+  auto SetPath(godot::PackedVector3Array path) -> void;
+  auto GetPath() -> godot::PackedVector3Array;
 
 private:
   godot::Vector3 position;
+  godot::Ref<godot::Curve3D> pathCurve;
   EnemiesVector enemies;
 };
 
