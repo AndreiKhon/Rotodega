@@ -3,6 +3,7 @@
 #include "Enemy.hpp"
 #include "EnemySpawner.hpp"
 #include "Tile.hpp"
+#include "Tower.hpp"
 #include "gdextension_interface.h"
 #include "godot_cpp/classes/a_star3d.hpp"
 #include "godot_cpp/classes/base_material3d.hpp"
@@ -14,7 +15,12 @@
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/orm_material3d.hpp"
 #include "godot_cpp/classes/ref.hpp"
+#include "godot_cpp/classes/resource.hpp"
+#include "godot_cpp/classes/resource_loader.hpp"
+#include "godot_cpp/classes/shader.hpp"
+#include "godot_cpp/classes/shader_material.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
+#include "godot_cpp/classes/static_body2d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/core/error_macros.hpp"
@@ -50,6 +56,10 @@ void MapGenerator::_bind_methods() {
       "set_start_directions_count", "get_start_directions_count");
   // godot::_err_print_error("_bind_methods", "MapGenerator.cpp", 44,
   // "Success");
+
+  godot::ClassDB::bind_method(
+      godot::D_METHOD("spawn_tower", "cell_position", "cell_size"),
+      &MapGenerator::SpawnTower);
 }
 
 void MapGenerator::_ready() {
@@ -352,6 +362,14 @@ auto MapGenerator::AddWayPoints(Position position,
   for (auto direction : directions) {
     AddWayPointTo(position, direction);
   }
+}
+
+auto MapGenerator::SpawnTower(godot::Vector3 cellPosition,
+                              godot::Vector3 cellSize) -> void {
+  auto tower = memnew(Tower);
+  add_child(tower);
+  auto y = (cellPosition + cellSize / 2).y + 10;
+  tower->set_position({cellPosition.x, y, cellPosition.z});
 }
 
 // ------------------------------------------------------------------------
@@ -701,13 +719,16 @@ auto ExtendTile::_ready() -> void {
 
   auto *staticBody = CreateBox(size, color);
 
-  // auto *label = memnew(godot::Label3D);
-  // label->set_text("Scan Area");
+  auto *label = memnew(godot::Label3D);
+  label->set_text("Scan Area");
 
-  // staticBody->add_child(label);
+  staticBody->add_child(label);
 
-  // label->set_position(godot::Vector3{});
-  // label->show();
+  label->set_position(godot::Vector3{0, size.y * 3, 0});
+  label->set_font_size(1024);
+  label->set_modulate(godot::Color{0, 1, 0});
+  label->set_billboard_mode(BaseMaterial3D::BillboardMode::BILLBOARD_ENABLED);
+  label->show();
 
   add_child(staticBody);
 }

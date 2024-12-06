@@ -99,6 +99,8 @@ private:
   auto AddWayPointFrom(Position position, Direction direction) -> void;
   auto AddWayPointTo(Position position, Direction direction) -> void;
   auto AddWayPoints(Position position, DirectionsVector directions) -> void;
+
+  auto SpawnTower(godot::Vector3 cellPosition, godot::Vector3 cellSize) -> void;
 };
 
 // class ExtendButton : public godot::Button {

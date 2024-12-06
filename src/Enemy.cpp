@@ -2,19 +2,27 @@
 #include "Enemy.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/box_shape3d.hpp"
+#include "godot_cpp/classes/character_body3d.hpp"
 #include "godot_cpp/classes/collision_shape3d.hpp"
+#include "godot_cpp/classes/curve3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/path3d.hpp"
 #include "godot_cpp/classes/path_follow3d.hpp"
+#include "godot_cpp/classes/random_number_generator.hpp"
 #include "godot_cpp/classes/ref.hpp"
+#include "godot_cpp/classes/rigid_body3d.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
-#include "godot_cpp/classes/curve3d.hpp"
-#include "godot_cpp/classes/random_number_generator.hpp"
+#include "godot_cpp/variant/packed_vector3_array.hpp"
+#include <algorithm>
+#include <format>
+#include <limits>
 
 namespace game {
 
-auto Enemy::_bind_methods() -> void {}
+auto Enemy::_bind_methods() -> void {
+  godot::ClassDB::bind_method(godot::D_METHOD("die"), &Enemy::die);
+}
 
 godot::StaticBody3D *CreateBoxEnemy(godot::Vector3 size, godot::Color color) {
   auto staticBody = memnew(godot::StaticBody3D);
@@ -34,7 +42,6 @@ godot::StaticBody3D *CreateBoxEnemy(godot::Vector3 size, godot::Color color) {
   auto material = godot::Ref<godot::StandardMaterial3D>{};
   material.instantiate();
   material->set_albedo(color);
-  // material->set_transparency( godot::BaseMaterial3D::TRANSPARENCY_ALPHA);
   boxMesh->set_material(material);
   mesh3D->set_mesh(boxMesh);
 
@@ -44,23 +51,58 @@ godot::StaticBody3D *CreateBoxEnemy(godot::Vector3 size, godot::Color color) {
 }
 
 auto Enemy::_ready() -> void {
-  pathFollow = memnew(godot::PathFollow3D);
-    pathFollow->set_loop(false);
-    godot::Ref<godot::RandomNumberGenerator> rng;
-    rng.instantiate();
-  auto *staticBody = CreateBoxEnemy({10, 10, 10}, {rng->randfn(), rng->randfn(), rng->randfn()});
-  pathFollow->add_child(staticBody);
 
-  add_child(pathFollow);
+  godot::Ref<godot::RandomNumberGenerator> rng;
+  rng.instantiate();
+  auto *staticBody = CreateBoxEnemy(
+      {10, 10, 10}, {rng->randfn(), rng->randfn(), rng->randfn()});
+
+  add_child(staticBody);
+  add_to_group("Enemy");
+
+  set_gravity_scale(0);
+  // set_contact_monitor(true);
+  // set_max_contacts_reported(std::numeric_limits<int32_t>::max());
 }
 
-auto Enemy::_process(double delta) -> void {
-    auto distance = speed * delta;
-    pathFollow->set_progress(pathFollow->get_progress() + distance);
+auto Enemy::_physics_process(double delta) -> void {
+  if (path) {
+    auto position = get_global_position();
+
+    const auto &wayPoints = path->get();
+    auto target = wayPoints[targetWayPointIndex];
+    if (position.distance_squared_to(target) < 1) {
+      targetWayPointIndex =
+          std::clamp(++targetWayPointIndex, std::size_t{0},
+                     static_cast<std::size_t>(wayPoints.size() - 1));
+      target = wayPoints[targetWayPointIndex];
+    }
+    auto velocity = (target - position).normalized() * speed * delta;
+    move_and_collide(velocity);
+  }
 }
 
-auto Enemy::SetPathCurve(godot::Ref<godot::Curve3D> path) -> void {
-    set_curve(path);
+auto Enemy::die() -> void {
+  // auto str = std::format("Die; id = {}", get_instance_id());
+  // godot::_err_print_error("on_enemy_entered", "", 0, str.c_str());
+  get_parent()->remove_child(this);
+  queue_free();
 }
 
+auto Enemy::SetPath(const godot::PackedVector3Array &path) -> void {
+  this->path = std::ref(path);
+}
+
+auto Enemy::GetRemainDistance() const -> double {
+  const auto &wayPoints = path->get();
+  auto position = get_global_position();
+
+  double remainDistance{};
+  for (auto i = targetWayPointIndex; i < wayPoints.size(); ++i) {
+    auto target = wayPoints[i];
+    remainDistance += position.distance_to(target);
+    position = target;
+  }
+  return remainDistance;
+}
 } // namespace game

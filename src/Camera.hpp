@@ -20,6 +20,7 @@ public:
   auto _unhandled_input(const godot::Ref<godot::InputEvent> &p_event) -> void override;
 
   auto get_selection(const godot::Vector2&) -> void;
+  auto get_geometry(const godot::Vector2&) -> void;
 
 public:
   auto get_speed() -> double;

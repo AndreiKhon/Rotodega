@@ -27,17 +27,16 @@ auto EnemySpawner::_ready() -> void {
   timer->connect("timeout", godot::Callable(this, "on_timer"));
   add_child(timer);
   timer->start();
-  pathCurve.instantiate();
 }
 
 auto EnemySpawner::on_timer() -> void {
   if (!enemies.empty()) {
     auto *enemy = memnew(Enemy);
     enemies.resize(enemies.size() - 1);
-    enemy->SetPathCurve(pathCurve);
+    enemy->SetPath(path);
 
     add_child(enemy);
-    // enemy->set_global_position(position);
+    enemy->set_global_position(path[0]);
   }
 }
 
@@ -52,10 +51,7 @@ auto EnemySpawner::SetEnemies(EnemiesVector enemies) -> void {
 }
 
 auto EnemySpawner::SetPath(godot::PackedVector3Array path) -> void {
-  auto previousPosition3d = godot::Vector3{};
-  for (std::size_t i = 0; i < path.size(); ++i) {
-    pathCurve->add_point(path[i]);
-  }
+  this->path = path;
 }
 
 auto EnemySpawner::GetPath() -> godot::PackedVector3Array { return {}; }

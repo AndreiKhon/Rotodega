@@ -34,7 +34,7 @@ public:
 
 private:
   godot::Vector3 position;
-  godot::Ref<godot::Curve3D> pathCurve;
+  godot::PackedVector3Array path;
   EnemiesVector enemies;
 };
 

@@ -2,10 +2,14 @@
 #ifndef ENEMYHPP
 #define ENEMYHPP
 
+#include <godot_cpp/classes/physics_body3d.hpp>
+
 #include "godot_cpp/classes/curve3d.hpp"
 #include "godot_cpp/classes/path3d.hpp"
-#include "godot_cpp/classes/path_follow3d.hpp"
+#include "godot_cpp/classes/rigid_body3d.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
+#include <functional>
+#include <optional>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -19,6 +23,7 @@ concept EnemyFeatures = requires(T enemy) {
   { enemy.health } -> std::convertible_to<std::uint64_t>;
   { enemy.armor } -> std::convertible_to<std::uint64_t>;
   { enemy.shield } -> std::convertible_to<std::uint64_t>;
+
   { enemy.speed } -> std::convertible_to<double>;
 };
 
@@ -43,25 +48,29 @@ inline void EnemiesTest() {
 }
 // ------------------------------------------------------------------------------------------------
 
-using EnemiesVector = std::vector<EnemyType>;
+using EnemiesVector = std::vector<EnemyType>; // TODO span
 
-class Enemy : public godot::Path3D {
-  GDCLASS(Enemy, godot::Node)
+class Enemy : public godot::RigidBody3D {
+  GDCLASS(Enemy, godot::RigidBody3D)
 protected:
   static auto _bind_methods() -> void;
 
 public:
   auto _ready() -> void override;
-  auto _process(double delta) -> void override;
+  auto _physics_process(double delta) -> void override;
+
+  auto die() -> void;
 
 public:
-  auto SetPathCurve(godot::Ref<godot::Curve3D> path) -> void;
+  auto SetPath(const godot::PackedVector3Array &path) -> void;
+
+  auto GetRemainDistance() const -> double;
 
 private:
   EnemyType type;
-  godot::PackedVector3Array path;
-  godot::PathFollow3D *pathFollow;
-  double speed = 50; // TODO remove
+  std::optional<std::reference_wrapper<const godot::PackedVector3Array>> path;
+  std::size_t targetWayPointIndex = 0;
+  double speed = 25; // TODO remove
 };
 
 } // namespace game

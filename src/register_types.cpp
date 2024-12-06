@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 #include "EnemySpawner.hpp"
 #include "MapGenerator.hpp"
+#include "Tower.hpp"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -19,6 +20,7 @@ void initialize_game_module(godot::ModuleInitializationLevel p_level) {
   GDREGISTER_CLASS(game::ExtendTile);
   GDREGISTER_CLASS(game::EnemySpawner);
   GDREGISTER_CLASS(game::Enemy);
+  GDREGISTER_CLASS(game::Tower);
 }
 
 void uninitialize_game_module(godot::ModuleInitializationLevel p_level) {

@@ -1,10 +1,13 @@
 
 #include "Camera.hpp"
 #include "MapGenerator.hpp"
+#include "godot_cpp/classes/box_mesh.hpp"
+#include "godot_cpp/classes/collision_object3d.hpp"
 #include "godot_cpp/classes/global_constants.hpp"
 #include "godot_cpp/classes/input.hpp"
 #include "godot_cpp/classes/input_event_mouse.hpp"
 #include "godot_cpp/classes/input_event_mouse_button.hpp"
+#include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/object.hpp"
 #include "godot_cpp/classes/physics_direct_space_state3d.hpp"
 #include "godot_cpp/classes/physics_ray_query_parameters3d.hpp"
@@ -28,6 +31,10 @@ auto Camera::_bind_methods() -> void {
 
   ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "speed"), "set_speed",
                "get_speed");
+
+  ADD_SIGNAL(MethodInfo("geometry_requested",
+                        PropertyInfo(godot::Variant::VECTOR3, "position"),
+                        PropertyInfo(godot::Variant::VECTOR3, "size")));
 }
 
 auto Camera::_ready() -> void {
@@ -69,7 +76,7 @@ auto Camera::_process(double delta) -> void {
   }
   auto velocity = direction * speed * speedMultiplier;
   auto newPosition = get_position() + velocity * delta;
-  
+
   newPosition.y = std::clamp(newPosition.y, 140.0f, 1400.0f);
 
   set_position(newPosition);
@@ -98,6 +105,9 @@ auto Camera::_unhandled_input(const godot::Ref<godot::InputEvent> &p_event)
       switch (buttonIndex) {
       case godot::MOUSE_BUTTON_LEFT:
         get_selection(mbe->get_position());
+        break;
+      case godot::MOUSE_BUTTON_RIGHT:
+        get_geometry(mbe->get_position());
         break;
       case godot::MOUSE_BUTTON_WHEEL_UP: {
         auto fov = get_fov();
@@ -134,6 +144,34 @@ auto Camera::get_selection(const godot::Vector2 &mousePos) -> void {
         auto parent = staticbody->get_parent();
         if (parent->has_method("interact")) {
           parent->call("interact");
+        }
+      }
+    }
+  }
+}
+
+auto Camera::get_geometry(const godot::Vector2 &mousePos) -> void {
+  auto worldspace = get_world_3d()->get_direct_space_state();
+  auto start = project_ray_origin(mousePos);
+  auto end = project_position(mousePos, 1500);
+  auto result = worldspace->intersect_ray(
+      godot::PhysicsRayQueryParameters3D::create(start, end));
+  if (!result.is_empty()) {
+    if (result.has("collider")) {
+      auto collider = result["collider"];
+
+      StaticBody3D *obj =
+          dynamic_cast<StaticBody3D *>(static_cast<godot::Object *>(collider));
+      if (obj) { // TODO Looks strange, should it be easier?
+        auto parent = obj->get_parent();
+        auto meshInstance =
+            dynamic_cast<godot::MeshInstance3D *>(parent->get_child(1));
+        if (meshInstance) {
+          godot::Ref<godot::BoxMesh> mesh = meshInstance->get_mesh(); // TODO Works only with boxes
+          auto position = obj->get_global_position();
+          auto size = mesh->get_size();
+
+          emit_signal("geometry_requested", position, size);
         }
       }
     }
