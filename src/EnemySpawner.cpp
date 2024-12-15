@@ -32,6 +32,8 @@ auto EnemySpawner::_ready() -> void {
 auto EnemySpawner::on_timer() -> void {
   if (!enemies.empty()) {
     auto *enemy = memnew(Enemy);
+    auto enemyType = enemies.back();
+    enemy->SetType(enemyType);
     enemies.resize(enemies.size() - 1);
     enemy->SetPath(path);
 

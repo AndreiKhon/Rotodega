@@ -1,5 +1,6 @@
 
 #include "Enemy.hpp"
+#include "StatusEffect.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/box_shape3d.hpp"
 #include "godot_cpp/classes/character_body3d.hpp"
@@ -13,15 +14,23 @@
 #include "godot_cpp/classes/rigid_body3d.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
+#include "godot_cpp/core/object.hpp"
+#include "godot_cpp/variant/callable.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
+#include "helpers.hpp"
 #include <algorithm>
 #include <format>
 #include <limits>
+#include <variant>
 
 namespace game {
 
 auto Enemy::_bind_methods() -> void {
   godot::ClassDB::bind_method(godot::D_METHOD("die"), &Enemy::die);
+  godot::ClassDB::bind_method(godot::D_METHOD("on_effect_deplete"),
+                              &Enemy::on_effect_deplete);
+  godot::ClassDB::bind_method(godot::D_METHOD("on_effect_update"),
+                              &Enemy::on_effect_update);
 }
 
 godot::StaticBody3D *CreateBoxEnemy(godot::Vector3 size, godot::Color color) {
@@ -77,8 +86,31 @@ auto Enemy::_physics_process(double delta) -> void {
                      static_cast<std::size_t>(wayPoints.size() - 1));
       target = wayPoints[targetWayPointIndex];
     }
-    auto velocity = (target - position).normalized() * speed * delta;
+    modifiedSpeed = std::visit(GetEnemySpeedVisitor{}, enemy);
+    auto velocity = (target - position).normalized() * modifiedSpeed * delta;
     move_and_collide(velocity);
+  }
+}
+
+auto Enemy::on_effect_deplete(std::uint64_t id) -> void {
+  effectsId.erase(id);
+  auto *statusEffectObj = godot::ObjectDB::get_instance(id);
+  if (statusEffectObj) {
+    auto *statusEffect = static_cast<StatusEffect *>(statusEffectObj);
+    enemy = std::visit(SetEnemySpeedVisitor{}, enemy, std::variant<double>(originalSpeed));
+    statusEffect->queue_free();
+  }
+}
+
+auto Enemy::on_effect_update(std::uint64_t id) -> void {
+  auto *statusEffectObj = godot::ObjectDB::get_instance(id);
+  if (statusEffectObj) {
+    auto *statusEffect = static_cast<StatusEffect *>(statusEffectObj);
+    auto effect = statusEffect->GetType();
+    enemy = std::visit(SetEnemySpeedVisitor{}, enemy, std::variant<double>(originalSpeed));
+    enemy = std::visit(ApplyEffectOnEnemy{}, enemy, effect);
+    auto speed = std::visit(GetEnemySpeedVisitor{}, enemy);
+    debug::PrintError(std::format("applied effect {}", speed));
   }
 }
 
@@ -105,4 +137,38 @@ auto Enemy::GetRemainDistance() const -> double {
   }
   return remainDistance;
 }
+
+auto Enemy::GetType() const -> EnemyType { return enemy; }
+auto Enemy::SetType(EnemyType enemy) -> void {
+  this->enemy = enemy;
+  originalSpeed = std::visit(GetEnemySpeedVisitor{}, enemy);
+}
+
+auto Enemy::Apply(EffectType effect) -> void {
+  for (auto statusEffectId : effectsId) {
+    auto *statusEffectObj = godot::ObjectDB::get_instance(statusEffectId);
+    if (!statusEffectObj) {
+      continue;
+    }
+
+    auto *statusEffect = static_cast<StatusEffect *>(statusEffectObj);
+    auto existingEffect = statusEffect->GetType();
+    auto isSame = std::visit(IsSameEffectVisitor{}, existingEffect, effect);
+    if (isSame) {
+      statusEffect->Update(effect);
+      return;
+    }
+  }
+
+  // Create new StatusEffect
+  auto *statusEffect = memnew(StatusEffect);
+  statusEffect->SetType(effect);
+  statusEffect->connect("effect_depleted",
+                        godot::Callable(this, "on_effect_deplete"));
+  statusEffect->connect("effect_updated",
+                        godot::Callable(this, "on_effect_update"));
+  add_child(statusEffect);
+  effectsId.emplace(statusEffect->get_instance_id());
+}
+
 } // namespace game
