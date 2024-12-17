@@ -1,5 +1,6 @@
 
 #include "MapGenerator.hpp"
+#include "Enemies.hpp"
 #include "Enemy.hpp"
 #include "EnemySpawner.hpp"
 #include "Tile.hpp"
@@ -286,7 +287,7 @@ auto MapGenerator::UpdateEnemySpawnersEnemies(const EnemiesVector &enemies)
 
   auto children = get_children();
 
-  for (std::size_t i; i < children.size(); ++i) {
+  for (std::int64_t i = 0; i < children.size(); ++i) {
     std::size_t restEnemies = std::distance(it, enemies.end());
     EnemiesVector spawnerEnemies(it, it + std::min(enemiesCount, restEnemies));
     auto *node =
@@ -304,7 +305,7 @@ auto MapGenerator::DeleteNearestSpawner(godot::Vector3 position) -> void {
   EnemySpawner *spawnerToDelete = nullptr;
   auto minDistance = std::numeric_limits<real_t>{}.max();
 
-  for (std::size_t i; i < children.size(); ++i) {
+  for (std::int64_t i = 0; i < children.size(); ++i) {
     auto *node =
         dynamic_cast<Node *>(static_cast<godot::Object *>(children[i]));
     if (node && node->is_in_group("Spawners")) {
@@ -421,7 +422,7 @@ void MapGenerator::Extend(Position position, Direction direction) {
   }
 
   // TODO: GetNewEnemies
-  auto enemies = EnemiesVector(10, TestEnemy{});
+  auto enemies = EnemiesVector{TestEnemy0{}, TestEnemy1{}, TestEnemy2{}};
   // TODO set path to spawner or to enemy
   AddEnemySpawners(neighbor, directions, aStar);
   UpdateEnemySpawnersEnemies(enemies);
