@@ -3,6 +3,7 @@
 #define ENEMYHPP
 
 #include "Enemies.hpp"
+#include "HitPointsBar.hpp"
 #include "StatusEffect.hpp"
 #include "godot_cpp/classes/curve3d.hpp"
 #include "godot_cpp/classes/path3d.hpp"
@@ -61,12 +62,13 @@ public:
   auto die() -> void;
 
 public:
+  Enemy() = default;
+  Enemy(EnemyType enemy);
   auto SetPath(const godot::PackedVector3Array &path) -> void;
 
   auto GetRemainDistance() const -> double;
 
   auto GetType() const -> EnemyType;
-  auto SetType(EnemyType) -> void;
 
   auto Apply(EffectType effect) -> void;
 
@@ -75,6 +77,7 @@ private:
   std::unordered_set<uint64_t> effectsId;
   std::optional<std::reference_wrapper<const godot::PackedVector3Array>> path;
   std::size_t targetWayPointIndex = 0;
+  HitPointsBar* hpBar;
   double modifiedSpeed;
   double originalSpeed;
 };
@@ -146,6 +149,12 @@ struct SetEnemySpeedVisitor {
                   std::variant<double> speed) -> EnemyType {
     enemy.speed = std::get<0>(speed);
     return enemy;
+  }
+};
+
+struct GetEnemyHPVisitor {
+  auto operator()(BasicEnemy auto enemy) -> HitPoints {
+    return enemy.hp;
   }
 };
 

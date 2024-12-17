@@ -3,6 +3,7 @@
 
 #include "Camera.hpp"
 #include "EnemySpawner.hpp"
+#include "HitPointsBar.hpp"
 #include "MapGenerator.hpp"
 #include "StatusEffect.hpp"
 #include "Tower.hpp"
@@ -23,6 +24,7 @@ void initialize_game_module(godot::ModuleInitializationLevel p_level) {
   GDREGISTER_CLASS(game::Enemy);
   GDREGISTER_CLASS(game::Tower);
   GDREGISTER_CLASS(game::StatusEffect);
+  GDREGISTER_CLASS(game::HitPointsBar);
 }
 
 void uninitialize_game_module(godot::ModuleInitializationLevel p_level) {

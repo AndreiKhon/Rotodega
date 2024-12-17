@@ -1,5 +1,6 @@
 
 #include "Enemy.hpp"
+#include "HitPointsBar.hpp"
 #include "StatusEffect.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/box_shape3d.hpp"
@@ -70,8 +71,11 @@ auto Enemy::_ready() -> void {
   add_to_group("Enemy");
 
   set_gravity_scale(0);
-  // set_contact_monitor(true);
-  // set_max_contacts_reported(std::numeric_limits<int32_t>::max());
+  
+  auto hp = std::visit(GetEnemyHPVisitor{}, enemy);
+  hpBar = memnew(HitPointsBar(hp));
+  staticBody->add_child(hpBar);
+  hpBar->set_position(godot::Vector3{0, 20, 0});
 }
 
 auto Enemy::_physics_process(double delta) -> void {
@@ -82,7 +86,7 @@ auto Enemy::_physics_process(double delta) -> void {
     auto target = wayPoints[targetWayPointIndex];
     if (position.distance_squared_to(target) < 1) {
       targetWayPointIndex =
-          std::clamp(++targetWayPointIndex, std::size_t{0},
+          std::clamp(targetWayPointIndex + 1, std::size_t{0},
                      static_cast<std::size_t>(wayPoints.size() - 1));
       target = wayPoints[targetWayPointIndex];
     }
@@ -121,6 +125,13 @@ auto Enemy::die() -> void {
   queue_free();
 }
 
+// ---------------------------
+
+Enemy::Enemy(EnemyType enemy) {
+  this->enemy = enemy;
+  originalSpeed = std::visit(GetEnemySpeedVisitor{}, enemy);
+}
+
 auto Enemy::SetPath(const godot::PackedVector3Array &path) -> void {
   this->path = std::ref(path);
 }
@@ -130,7 +141,7 @@ auto Enemy::GetRemainDistance() const -> double {
   auto position = get_global_position();
 
   double remainDistance{};
-  for (auto i = targetWayPointIndex; i < wayPoints.size(); ++i) {
+  for (int64_t i = targetWayPointIndex; i < wayPoints.size(); ++i) {
     auto target = wayPoints[i];
     remainDistance += position.distance_to(target);
     position = target;
@@ -139,10 +150,6 @@ auto Enemy::GetRemainDistance() const -> double {
 }
 
 auto Enemy::GetType() const -> EnemyType { return enemy; }
-auto Enemy::SetType(EnemyType enemy) -> void {
-  this->enemy = enemy;
-  originalSpeed = std::visit(GetEnemySpeedVisitor{}, enemy);
-}
 
 auto Enemy::Apply(EffectType effect) -> void {
   for (auto statusEffectId : effectsId) {
