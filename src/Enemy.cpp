@@ -13,9 +13,7 @@
 #include "godot_cpp/core/object.hpp"
 #include "godot_cpp/variant/callable.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
-#include "helpers.hpp"
 #include <algorithm>
-#include <format>
 #include <variant>
 
 namespace game {
@@ -65,8 +63,8 @@ auto Enemy::_ready() -> void {
   add_to_group("Enemy");
 
   set_gravity_scale(0);
-  
-  auto hp = std::visit(GetEnemyHPVisitor{}, enemy);
+
+  auto hp = enemy.GetHP();
   hpBar = memnew(HitPointsBar(hp));
   staticBody->add_child(hpBar);
   hpBar->set_position(godot::Vector3{0, 20, 0});
@@ -84,7 +82,7 @@ auto Enemy::_physics_process(double delta) -> void {
                      static_cast<std::size_t>(wayPoints.size() - 1));
       target = wayPoints[targetWayPointIndex];
     }
-    modifiedSpeed = std::visit(GetEnemySpeedVisitor{}, enemy);
+    modifiedSpeed = enemy.GetSpeed();
     auto velocity = (target - position).normalized() * modifiedSpeed * delta;
     move_and_collide(velocity);
   }
@@ -95,7 +93,7 @@ auto Enemy::on_effect_deplete(std::uint64_t id) -> void {
   auto *statusEffectObj = godot::ObjectDB::get_instance(id);
   if (statusEffectObj) {
     auto *statusEffect = static_cast<StatusEffect *>(statusEffectObj);
-    enemy = std::visit(SetEnemySpeedVisitor{}, enemy, std::variant<double>(originalSpeed));
+    enemy.SetSpeed(originalSpeed);
     statusEffect->queue_free();
   }
 }
@@ -105,10 +103,8 @@ auto Enemy::on_effect_update(std::uint64_t id) -> void {
   if (statusEffectObj) {
     auto *statusEffect = static_cast<StatusEffect *>(statusEffectObj);
     auto effect = statusEffect->GetType();
-    enemy = std::visit(SetEnemySpeedVisitor{}, enemy, std::variant<double>(originalSpeed));
-    enemy = std::visit(ApplyEffectOnEnemy{}, enemy, effect);
-    auto speed = std::visit(GetEnemySpeedVisitor{}, enemy);
-    debug::PrintError(std::format("applied effect {}", speed));
+    enemy.SetSpeed(originalSpeed);
+    enemy.ApplyEffect(effect);
   }
 }
 
@@ -121,10 +117,8 @@ auto Enemy::die() -> void {
 
 // ---------------------------
 
-Enemy::Enemy(EnemyType enemy) {
-  this->enemy = enemy;
-  originalSpeed = std::visit(GetEnemySpeedVisitor{}, enemy);
-}
+Enemy::Enemy(EnemyVariant enemy)
+    : enemy(enemy), originalSpeed(this->enemy.GetSpeed()) {}
 
 auto Enemy::SetPath(const godot::PackedVector3Array &path) -> void {
   this->path = std::ref(path);
@@ -142,8 +136,6 @@ auto Enemy::GetRemainDistance() const -> double {
   }
   return remainDistance;
 }
-
-auto Enemy::GetType() const -> EnemyType { return enemy; }
 
 auto Enemy::Apply(EffectType effect) -> void {
   for (auto statusEffectId : effectsId) {
