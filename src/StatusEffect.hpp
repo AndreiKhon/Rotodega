@@ -51,8 +51,9 @@ private:
   auto on_timer() -> void;
 
 public:
+  StatusEffect() = default;
+  explicit StatusEffect(EffectType effect);
   auto Update(EffectType effect) -> void;
-  auto SetType(EffectType effect) -> void;
   auto GetType() -> EffectType const;
 
 private:

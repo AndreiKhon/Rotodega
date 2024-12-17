@@ -162,8 +162,7 @@ auto Enemy::Apply(EffectType effect) -> void {
   }
 
   // Create new StatusEffect
-  auto *statusEffect = memnew(StatusEffect);
-  statusEffect->SetType(effect);
+  auto *statusEffect = memnew(StatusEffect(effect));
   statusEffect->connect("effect_depleted",
                         godot::Callable(this, "on_effect_deplete"));
   statusEffect->connect("effect_updated",

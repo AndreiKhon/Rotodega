@@ -179,9 +179,7 @@ void MapGenerator::PrepairTileFor3D(Position position) {
 
 ExtendTile *MapGenerator::CreateExtendTile(Position position,
                                            Direction direction) {
-  auto *extendTile = memnew(ExtendTile);
-  extendTile->SetExtendFromPosition(position);
-  extendTile->SetDirection(direction);
+  auto *extendTile = memnew(ExtendTile(position, direction));
   extendTile->connect("extend_pressed",
                       godot::Callable(this, "extend_pressed_method"));
   extendTile->add_to_group("Extends");
@@ -739,12 +737,9 @@ auto ExtendTile::interact() -> void {
   queue_free();
 }
 
-auto ExtendTile::SetExtendFromPosition(Position position) -> void {
-  extendFromPosition = position;
-}
+// -----------------------
 
-auto ExtendTile::SetDirection(Direction direction) -> void {
-  this->direction = direction;
-}
+ExtendTile::ExtendTile(Position extendFromPosition, Direction direction)
+    : extendFromPosition(extendFromPosition), direction(direction) {}
 
 } // namespace game

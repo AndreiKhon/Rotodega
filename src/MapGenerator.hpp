@@ -130,8 +130,8 @@ public:
   auto interact() -> void;
 
 public:
-  auto SetExtendFromPosition(Position) -> void;
-  auto SetDirection(Direction) -> void;
+  ExtendTile() = default;
+  ExtendTile(Position extendFromPosition, Direction direction);
 
 private:
   Position extendFromPosition;

@@ -38,11 +38,11 @@ auto StatusEffect::on_timer() -> void {
   }
 }
 
+StatusEffect::StatusEffect(EffectType effect) : effect(effect) {}
+
 auto StatusEffect::Update(EffectType effect) -> void {
   this->effect = std::visit(UpdateEffectVisitor{}, this->effect, effect);
 }
-
-auto StatusEffect::SetType(EffectType effect) -> void { this->effect = effect; }
 
 auto StatusEffect::GetType() -> EffectType const { return effect; }
 
