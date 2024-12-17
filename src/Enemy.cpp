@@ -4,15 +4,10 @@
 #include "StatusEffect.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/box_shape3d.hpp"
-#include "godot_cpp/classes/character_body3d.hpp"
 #include "godot_cpp/classes/collision_shape3d.hpp"
-#include "godot_cpp/classes/curve3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
-#include "godot_cpp/classes/path3d.hpp"
-#include "godot_cpp/classes/path_follow3d.hpp"
 #include "godot_cpp/classes/random_number_generator.hpp"
 #include "godot_cpp/classes/ref.hpp"
-#include "godot_cpp/classes/rigid_body3d.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/core/object.hpp"
@@ -21,7 +16,6 @@
 #include "helpers.hpp"
 #include <algorithm>
 #include <format>
-#include <limits>
 #include <variant>
 
 namespace game {

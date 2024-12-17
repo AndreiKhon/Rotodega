@@ -11,7 +11,6 @@
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/core/object.hpp"
 #include "godot_cpp/variant/vector3.hpp"
-#include <format>
 #include <functional>
 #include <limits>
 #include <optional>

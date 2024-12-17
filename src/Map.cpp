@@ -8,7 +8,7 @@ auto Map::GetTile(Position pos) -> std::optional<Tile> {
   bool isTileExist = IsTileExist(pos);
   if (isTileExist) {
     const auto tile = map[pos];
-    return std::optional<Tile>(map[pos]);
+    return std::optional<Tile>(tile);
   }
   return std::nullopt;
 }

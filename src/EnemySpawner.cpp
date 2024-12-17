@@ -1,18 +1,11 @@
 
 #include "EnemySpawner.hpp"
 #include "Enemy.hpp"
-#include "godot_cpp/classes/box_mesh.hpp"
-#include "godot_cpp/classes/box_shape3d.hpp"
-#include "godot_cpp/classes/collision_shape3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
-#include "godot_cpp/classes/standard_material3d.hpp"
-#include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/classes/timer.hpp"
 #include "godot_cpp/variant/callable.hpp"
-#include "godot_cpp/variant/packed_vector2_array.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
 #include "godot_cpp/variant/vector3.hpp"
-#include <format>
 
 namespace game {
 
@@ -47,7 +40,7 @@ auto EnemySpawner::SetPosition(godot::Vector3 position) -> void {
 
 auto EnemySpawner::GetPosition() -> godot::Vector3 { return position; }
 
-auto EnemySpawner::SetEnemies(EnemiesVector enemies) -> void {
+auto EnemySpawner::SetEnemies(const EnemiesVector& enemies) -> void {
   this->enemies = enemies;
 }
 

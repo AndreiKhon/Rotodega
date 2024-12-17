@@ -1,11 +1,9 @@
 
 #include "Camera.hpp"
-#include "MapGenerator.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/collision_object3d.hpp"
 #include "godot_cpp/classes/global_constants.hpp"
 #include "godot_cpp/classes/input.hpp"
-#include "godot_cpp/classes/input_event_mouse.hpp"
 #include "godot_cpp/classes/input_event_mouse_button.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/object.hpp"
@@ -18,7 +16,6 @@
 #include "godot_cpp/variant/vector2.hpp"
 #include "godot_cpp/variant/vector3.hpp"
 #include <algorithm>
-#include <cstddef>
 
 namespace game {
 
@@ -32,9 +29,9 @@ auto Camera::_bind_methods() -> void {
   ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "speed"), "set_speed",
                "get_speed");
 
-  ADD_SIGNAL(MethodInfo("geometry_requested",
-                        PropertyInfo(godot::Variant::VECTOR3, "position"),
-                        PropertyInfo(godot::Variant::VECTOR3, "size")));
+  ADD_SIGNAL(godot::MethodInfo("geometry_requested",
+                        godot::PropertyInfo(godot::Variant::VECTOR3, "position"),
+                        godot::PropertyInfo(godot::Variant::VECTOR3, "size")));
 }
 
 auto Camera::_ready() -> void {
@@ -139,7 +136,7 @@ auto Camera::get_selection(const godot::Vector2 &mousePos) -> void {
       auto collider = result["collider"];
 
       auto *staticbody =
-          dynamic_cast<StaticBody3D *>(static_cast<godot::Object *>(collider));
+          dynamic_cast<godot::StaticBody3D *>(static_cast<godot::Object *>(collider));
       if (staticbody) {
         auto parent = staticbody->get_parent();
         if (parent->has_method("interact")) {
@@ -160,8 +157,8 @@ auto Camera::get_geometry(const godot::Vector2 &mousePos) -> void {
     if (result.has("collider")) {
       auto collider = result["collider"];
 
-      StaticBody3D *obj =
-          dynamic_cast<StaticBody3D *>(static_cast<godot::Object *>(collider));
+      godot::StaticBody3D *obj =
+          dynamic_cast<godot::StaticBody3D *>(static_cast<godot::Object *>(collider));
       if (obj) { // TODO Looks strange, should it be easier?
         auto parent = obj->get_parent();
         auto meshInstance =

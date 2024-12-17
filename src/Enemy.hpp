@@ -5,8 +5,6 @@
 #include "Enemies.hpp"
 #include "HitPointsBar.hpp"
 #include "StatusEffect.hpp"
-#include "godot_cpp/classes/curve3d.hpp"
-#include "godot_cpp/classes/path3d.hpp"
 #include "godot_cpp/classes/rigid_body3d.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
 #include <functional>
@@ -63,7 +61,7 @@ public:
 
 public:
   Enemy() = default;
-  Enemy(EnemyType enemy);
+  explicit Enemy(EnemyType enemy);
   auto SetPath(const godot::PackedVector3Array &path) -> void;
 
   auto GetRemainDistance() const -> double;
@@ -77,9 +75,9 @@ private:
   std::unordered_set<uint64_t> effectsId;
   std::optional<std::reference_wrapper<const godot::PackedVector3Array>> path;
   std::size_t targetWayPointIndex = 0;
-  HitPointsBar* hpBar;
-  double modifiedSpeed;
-  double originalSpeed;
+  HitPointsBar* hpBar = nullptr;
+  double modifiedSpeed{};
+  double originalSpeed{};
 };
 
 // Visitors

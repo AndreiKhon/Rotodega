@@ -8,17 +8,12 @@
 #include "Map.hpp"
 #include "Tile.hpp"
 #include "godot_cpp/classes/a_star3d.hpp"
-#include "godot_cpp/classes/button.hpp"
-#include "godot_cpp/classes/static_body2d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
-#include "godot_cpp/variant/packed_int32_array.hpp"
-#include "godot_cpp/variant/variant.hpp"
 #include "godot_cpp/variant/vector3.hpp"
 #include <cstddef>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <random>
-#include <vector>
 
 namespace game {
 
@@ -64,11 +59,11 @@ public:
 
 private:
   void AddStartTile();
-  Tile GenerateStartTile(DirectionsVector directions);
-  Tile GenerateTile(Direction extendFrom, DirectionsVector possibleExtensions);
+  Tile GenerateStartTile(const DirectionsVector& directions);
+  Tile GenerateTile(Direction extendFrom, const DirectionsVector& possibleExtensions);
   void AddRoad(Tile &tile,
                Direction direction); // TODO make better generation sistem
-  auto AddRoads(Tile &tile, DirectionsVector directions) -> void;
+  auto AddRoads(Tile &tile, const DirectionsVector& directions) -> void;
   bool IsTileForExtention(Position position);
   DirectionsVector GetFreePositionsAround(Position position);
   auto GetFreeTilesCount() const -> std::size_t;
@@ -82,13 +77,13 @@ private:
   Direction GetOppositeDirection(Direction direction);
 
   ExtendTile *CreateExtendTile(Position pos, Direction direction);
-  auto AddExtendTiles(Position position, DirectionsVector directions) -> void;
+  auto AddExtendTiles(Position position, const DirectionsVector& directions) -> void;
 
   godot::Vector3
   calculateTilePosition3D(Position position); // Shoul be in an another class?
 
   auto CreateEnemySpawner() -> EnemySpawner *;
-  auto AddEnemySpawners(Position position, DirectionsVector directions, godot::Ref<godot::AStar3D> aStar) -> void;
+  auto AddEnemySpawners(Position position, const DirectionsVector& directions, godot::Ref<godot::AStar3D> aStar) -> void;
 
   auto AddEnemySpawnerForPortal(Position position, godot::Ref<godot::AStar3D> aStar) -> void;
   auto CalculateEnemySpawnerPosition(Position position,
@@ -98,7 +93,7 @@ private:
 
   auto AddWayPointFrom(Position position, Direction direction) -> void;
   auto AddWayPointTo(Position position, Direction direction) -> void;
-  auto AddWayPoints(Position position, DirectionsVector directions) -> void;
+  auto AddWayPoints(Position position, const DirectionsVector& directions) -> void;
 
   auto SpawnTower(godot::Vector3 cellPosition, godot::Vector3 cellSize) -> void;
 };

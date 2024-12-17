@@ -35,7 +35,7 @@ auto SetReload() -> void;
 
 
 private:
-godot::Timer* reloadTimer;
+godot::Timer* reloadTimer = nullptr;
 
 private:
 std::unordered_set<std::uint64_t> enemiesInArea;

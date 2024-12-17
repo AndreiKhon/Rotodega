@@ -18,11 +18,11 @@ public:
 
 public:
   HitPointsBar() = default;
-  HitPointsBar(HitPoints hp);
+  explicit HitPointsBar(HitPoints hp);
   auto Update(HitPoints hp) -> void;
 
 private:
-  HitPoints hp;
+  HitPoints hp{};
   godot::Ref<godot::ShaderMaterial> shaderMaterial;
 };
 

@@ -5,7 +5,6 @@
 #include "EnemySpawner.hpp"
 #include "Tile.hpp"
 #include "Tower.hpp"
-#include "gdextension_interface.h"
 #include "godot_cpp/classes/a_star3d.hpp"
 #include "godot_cpp/classes/base_material3d.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
@@ -14,14 +13,11 @@
 #include "godot_cpp/classes/collision_shape3d.hpp"
 #include "godot_cpp/classes/label3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
-#include "godot_cpp/classes/orm_material3d.hpp"
 #include "godot_cpp/classes/ref.hpp"
 #include "godot_cpp/classes/resource.hpp"
-#include "godot_cpp/classes/resource_loader.hpp"
 #include "godot_cpp/classes/shader.hpp"
 #include "godot_cpp/classes/shader_material.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
-#include "godot_cpp/classes/static_body2d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/core/error_macros.hpp"
@@ -32,11 +28,9 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <format>
 #include <iterator>
 #include <limits>
 #include <ranges>
-#include <string>
 #include <variant>
 
 namespace game {
@@ -139,7 +133,6 @@ struct PrepairCellFor3DVisitor {
 void MapGenerator::PrepairTileFor3D(Position position) {
   auto optTile = map.GetTile(position);
 
-  constexpr auto additionalHeiht = 5;
   if (optTile) {
     auto foundationSize =
         godot::Vector3{static_cast<real_t>(Tile::LengthInCells * cellSize),
@@ -196,7 +189,7 @@ ExtendTile *MapGenerator::CreateExtendTile(Position position,
 }
 
 auto MapGenerator::AddExtendTiles(Position position,
-                                  DirectionsVector directions) -> void {
+                                  const DirectionsVector& directions) -> void {
   for (auto direction : directions) {
     auto *extendTile = CreateExtendTile(position, direction);
     auto neighbor = Move(position, direction);
@@ -225,7 +218,7 @@ auto MapGenerator::CreateEnemySpawner() -> EnemySpawner * {
 }
 
 auto MapGenerator::AddEnemySpawners(Position position,
-                                    DirectionsVector directions,
+                                    const DirectionsVector& directions,
                                     godot::Ref<godot::AStar3D> aStar) -> void {
   DeleteNearestSpawner(calculateTilePosition3D(position)); // TODO think!
   if (directions.empty()) {
@@ -282,7 +275,6 @@ auto MapGenerator::CalculateEnemySpawnerPosition(
 auto MapGenerator::UpdateEnemySpawnersEnemies(const EnemiesVector &enemies)
     -> void { // FIXME remove copying, replace with spans
   auto enemiesCount = enemies.size();
-  auto enemiesCountPerSpawner = enemiesCount / spawnersCount;
   auto it = enemies.cbegin();
 
   auto children = get_children();
@@ -359,7 +351,7 @@ auto MapGenerator::AddWayPointTo(Position position,
   aStar->connect_points(lastAStarId++, nearestWayPointId, false);
 }
 auto MapGenerator::AddWayPoints(Position position,
-                                DirectionsVector directions) -> void {
+                                const DirectionsVector& directions) -> void {
   for (auto direction : directions) {
     AddWayPointTo(position, direction);
   }
@@ -447,7 +439,7 @@ void MapGenerator::AddStartTile() {
   // tilesForExtension.emplace_back(center);
 }
 
-Tile MapGenerator::GenerateStartTile(DirectionsVector directions) {
+Tile MapGenerator::GenerateStartTile(const DirectionsVector& directions) {
   Tile tile{};
 
   for (std::int64_t i = 0; i < Tile::LengthInCells; ++i) {
@@ -465,7 +457,7 @@ Tile MapGenerator::GenerateStartTile(DirectionsVector directions) {
   return tile;
 }
 Tile MapGenerator::GenerateTile(Direction extendFrom,
-                                DirectionsVector possibleExtensions) {
+                                const DirectionsVector& possibleExtensions) {
   Tile tile{};
   for (std::int64_t i = 0; i < Tile::LengthInCells; ++i) {
     for (std::int64_t j = 0; j < Tile::LengthInCells; ++j) {
@@ -511,7 +503,7 @@ void MapGenerator::AddRoad(Tile &tile, Direction direction) {
   }
 }
 
-auto MapGenerator::AddRoads(Tile &tile, DirectionsVector directions) -> void {
+auto MapGenerator::AddRoads(Tile &tile, const DirectionsVector& directions) -> void {
   for (auto direction : directions) {
     AddRoad(tile, direction);
   }
@@ -523,7 +515,6 @@ bool MapGenerator::IsTileForExtention(Position position) {
     auto neighbor = Move(position, direction);
     bool isTileExist = map.IsTileExist(neighbor);
     if (isTileExist) {
-      auto tile = *map.GetTile(neighbor);
       auto hasRoad = HasRoad(neighbor, GetOppositeDirection(direction));
       if (hasRoad) {
         return true;
