@@ -7,7 +7,6 @@
 #include "godot_cpp/variant/packed_vector3_array.hpp"
 #include "godot_cpp/variant/vector3.hpp"
 
-
 namespace game {
 
 class EnemySpawner : public godot::Node {
@@ -25,7 +24,7 @@ public:
   //   auto Spawn() -> void;
   auto SetPosition(godot::Vector3 position) -> void;
   auto GetPosition() -> godot::Vector3;
-  auto SetEnemies(const EnemiesVector& enemies) -> void;
+  auto SetEnemies(const EnemiesVector &enemies) -> void;
   auto SetPath(godot::PackedVector3Array path) -> void;
   auto GetPath() -> godot::PackedVector3Array;
 

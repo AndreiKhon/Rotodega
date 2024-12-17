@@ -3,9 +3,9 @@
 #define CAMERAHPP
 
 #include "godot_cpp/classes/camera3d.hpp"
+#include "godot_cpp/classes/input_event.hpp"
 #include "godot_cpp/classes/node.hpp"
 #include "godot_cpp/variant/vector2.hpp"
-#include "godot_cpp/classes/input_event.hpp"
 
 namespace game {
 
@@ -17,10 +17,11 @@ protected:
 public:
   auto _ready() -> void override;
   auto _process(double) -> void override;
-  auto _unhandled_input(const godot::Ref<godot::InputEvent> &p_event) -> void override;
+  auto _unhandled_input(const godot::Ref<godot::InputEvent> &p_event)
+      -> void override;
 
-  auto get_selection(const godot::Vector2&) -> void;
-  auto get_geometry(const godot::Vector2&) -> void;
+  auto get_selection(const godot::Vector2 &) -> void;
+  auto get_geometry(const godot::Vector2 &) -> void;
 
 public:
   auto get_speed() -> double;

@@ -1,11 +1,6 @@
 
 #include "StatusEffect.hpp"
 #include "godot_cpp/classes/timer.hpp"
-#include <algorithm>
-#include <exception>
-#include <format>
-#include <source_location>
-#include <type_traits>
 
 namespace game {
 

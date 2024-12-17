@@ -75,7 +75,7 @@ private:
   std::unordered_set<uint64_t> effectsId;
   std::optional<std::reference_wrapper<const godot::PackedVector3Array>> path;
   std::size_t targetWayPointIndex = 0;
-  HitPointsBar* hpBar = nullptr;
+  HitPointsBar *hpBar = nullptr;
   double modifiedSpeed{};
   double originalSpeed{};
 };
@@ -151,9 +151,7 @@ struct SetEnemySpeedVisitor {
 };
 
 struct GetEnemyHPVisitor {
-  auto operator()(BasicEnemy auto enemy) -> HitPoints {
-    return enemy.hp;
-  }
+  auto operator()(BasicEnemy auto enemy) -> HitPoints { return enemy.hp; }
 };
 
 } // namespace game

@@ -21,27 +21,25 @@ public:
   auto _ready() -> void override;
   auto _physics_process(double delta) -> void override;
 
+private:
+  auto on_enemy_entered(godot::Node3D *enemy) -> void;
+  auto on_enemy_exit(godot::Node3D *enemy) -> void;
+
+  auto on_reload_finished() -> void;
+
+  auto SelectTarget() -> void;
+  auto ShootTarget() -> void;
+  auto PredictTargetPosition() -> void;
+  auto SetReload() -> void;
 
 private:
-auto on_enemy_entered(godot::Node3D* enemy) -> void;
-auto on_enemy_exit(godot::Node3D* enemy) -> void;
-
-auto on_reload_finished() -> void;
-
-auto SelectTarget() -> void;
-auto ShootTarget() -> void;
-auto PredictTargetPosition() -> void;
-auto SetReload() -> void;
-
+  godot::Timer *reloadTimer = nullptr;
 
 private:
-godot::Timer* reloadTimer = nullptr;
+  std::unordered_set<std::uint64_t> enemiesInArea;
 
-private:
-std::unordered_set<std::uint64_t> enemiesInArea;
-
-std::optional<std::reference_wrapper<Enemy>> target;
-bool needReload = false;
+  std::optional<std::reference_wrapper<Enemy>> target;
+  bool needReload = false;
 };
 
 } // namespace game

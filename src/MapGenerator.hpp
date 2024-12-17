@@ -59,11 +59,12 @@ public:
 
 private:
   void AddStartTile();
-  Tile GenerateStartTile(const DirectionsVector& directions);
-  Tile GenerateTile(Direction extendFrom, const DirectionsVector& possibleExtensions);
+  Tile GenerateStartTile(const DirectionsVector &directions);
+  Tile GenerateTile(Direction extendFrom,
+                    const DirectionsVector &possibleExtensions);
   void AddRoad(Tile &tile,
                Direction direction); // TODO make better generation sistem
-  auto AddRoads(Tile &tile, const DirectionsVector& directions) -> void;
+  auto AddRoads(Tile &tile, const DirectionsVector &directions) -> void;
   bool IsTileForExtention(Position position);
   DirectionsVector GetFreePositionsAround(Position position);
   auto GetFreeTilesCount() const -> std::size_t;
@@ -77,15 +78,18 @@ private:
   Direction GetOppositeDirection(Direction direction);
 
   ExtendTile *CreateExtendTile(Position pos, Direction direction);
-  auto AddExtendTiles(Position position, const DirectionsVector& directions) -> void;
+  auto AddExtendTiles(Position position,
+                      const DirectionsVector &directions) -> void;
 
   godot::Vector3
   calculateTilePosition3D(Position position); // Shoul be in an another class?
 
   auto CreateEnemySpawner() -> EnemySpawner *;
-  auto AddEnemySpawners(Position position, const DirectionsVector& directions, godot::Ref<godot::AStar3D> aStar) -> void;
+  auto AddEnemySpawners(Position position, const DirectionsVector &directions,
+                        godot::Ref<godot::AStar3D> aStar) -> void;
 
-  auto AddEnemySpawnerForPortal(Position position, godot::Ref<godot::AStar3D> aStar) -> void;
+  auto AddEnemySpawnerForPortal(Position position,
+                                godot::Ref<godot::AStar3D> aStar) -> void;
   auto CalculateEnemySpawnerPosition(Position position,
                                      Direction direction) -> godot::Vector3;
   auto UpdateEnemySpawnersEnemies(const EnemiesVector &enemies) -> void;
@@ -93,7 +97,8 @@ private:
 
   auto AddWayPointFrom(Position position, Direction direction) -> void;
   auto AddWayPointTo(Position position, Direction direction) -> void;
-  auto AddWayPoints(Position position, const DirectionsVector& directions) -> void;
+  auto AddWayPoints(Position position,
+                    const DirectionsVector &directions) -> void;
 
   auto SpawnTower(godot::Vector3 cellPosition, godot::Vector3 cellSize) -> void;
 };

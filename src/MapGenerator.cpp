@@ -187,7 +187,7 @@ ExtendTile *MapGenerator::CreateExtendTile(Position position,
 }
 
 auto MapGenerator::AddExtendTiles(Position position,
-                                  const DirectionsVector& directions) -> void {
+                                  const DirectionsVector &directions) -> void {
   for (auto direction : directions) {
     auto *extendTile = CreateExtendTile(position, direction);
     auto neighbor = Move(position, direction);
@@ -216,7 +216,7 @@ auto MapGenerator::CreateEnemySpawner() -> EnemySpawner * {
 }
 
 auto MapGenerator::AddEnemySpawners(Position position,
-                                    const DirectionsVector& directions,
+                                    const DirectionsVector &directions,
                                     godot::Ref<godot::AStar3D> aStar) -> void {
   DeleteNearestSpawner(calculateTilePosition3D(position)); // TODO think!
   if (directions.empty()) {
@@ -349,7 +349,7 @@ auto MapGenerator::AddWayPointTo(Position position,
   aStar->connect_points(lastAStarId++, nearestWayPointId, false);
 }
 auto MapGenerator::AddWayPoints(Position position,
-                                const DirectionsVector& directions) -> void {
+                                const DirectionsVector &directions) -> void {
   for (auto direction : directions) {
     AddWayPointTo(position, direction);
   }
@@ -437,7 +437,7 @@ void MapGenerator::AddStartTile() {
   // tilesForExtension.emplace_back(center);
 }
 
-Tile MapGenerator::GenerateStartTile(const DirectionsVector& directions) {
+Tile MapGenerator::GenerateStartTile(const DirectionsVector &directions) {
   Tile tile{};
 
   for (std::int64_t i = 0; i < Tile::LengthInCells; ++i) {
@@ -455,7 +455,7 @@ Tile MapGenerator::GenerateStartTile(const DirectionsVector& directions) {
   return tile;
 }
 Tile MapGenerator::GenerateTile(Direction extendFrom,
-                                const DirectionsVector& possibleExtensions) {
+                                const DirectionsVector &possibleExtensions) {
   Tile tile{};
   for (std::int64_t i = 0; i < Tile::LengthInCells; ++i) {
     for (std::int64_t j = 0; j < Tile::LengthInCells; ++j) {
@@ -501,7 +501,8 @@ void MapGenerator::AddRoad(Tile &tile, Direction direction) {
   }
 }
 
-auto MapGenerator::AddRoads(Tile &tile, const DirectionsVector& directions) -> void {
+auto MapGenerator::AddRoads(Tile &tile,
+                            const DirectionsVector &directions) -> void {
   for (auto direction : directions) {
     AddRoad(tile, direction);
   }

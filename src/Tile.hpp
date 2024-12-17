@@ -11,7 +11,9 @@
 namespace game {
 
 enum class Direction { Up, Left, Down, Right };
-using DirectionsVector = std::vector<Direction>; // Should be replaced with std::array<std::optionaL<Direction>, 4>?
+using DirectionsVector =
+    std::vector<Direction>; // Should be replaced with
+                            // std::array<std::optionaL<Direction>, 4>?
 
 struct Position {
   std::int64_t x;

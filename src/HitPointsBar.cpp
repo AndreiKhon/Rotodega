@@ -20,7 +20,7 @@ auto HitPointsBar::_ready() -> void {
   shaderMaterial->set_shader(res);
 
   quadMesh->set_material(shaderMaterial);
-  
+
   set_mesh(quadMesh);
 
   auto allPoints = hp.health + hp.armor + hp.shield;

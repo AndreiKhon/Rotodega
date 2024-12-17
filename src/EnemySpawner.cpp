@@ -40,7 +40,7 @@ auto EnemySpawner::SetPosition(godot::Vector3 position) -> void {
 
 auto EnemySpawner::GetPosition() -> godot::Vector3 { return position; }
 
-auto EnemySpawner::SetEnemies(const EnemiesVector& enemies) -> void {
+auto EnemySpawner::SetEnemies(const EnemiesVector &enemies) -> void {
   this->enemies = enemies;
 }
 
