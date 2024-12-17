@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Godot
+*.cache
+*.godot
+*.dblite
+*.json
+*.os
+
+# Bin directory
+*/bin/
