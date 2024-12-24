@@ -5,6 +5,7 @@
 #include "EnemySpawner.hpp"
 #include "Tile.hpp"
 #include "Tower.hpp"
+#include "Towers.hpp"
 #include "godot_cpp/classes/a_star3d.hpp"
 #include "godot_cpp/classes/base_material3d.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
@@ -357,7 +358,7 @@ auto MapGenerator::AddWayPoints(Position position,
 
 auto MapGenerator::SpawnTower(godot::Vector3 cellPosition,
                               godot::Vector3 cellSize) -> void {
-  auto tower = memnew(Tower);
+  auto tower = memnew(Tower(TestTower1{}));
   add_child(tower);
   auto y = (cellPosition + cellSize / 2).y + 10;
   tower->set_position({cellPosition.x, y, cellPosition.z});

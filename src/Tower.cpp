@@ -1,5 +1,7 @@
 
 #include "Tower.hpp"
+#include "TowerType.hpp"
+#include "Towers.hpp"
 #include "godot_cpp/classes/box_mesh.hpp"
 #include "godot_cpp/classes/collision_shape3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
@@ -45,6 +47,17 @@ godot::StaticBody3D *CreateTowerBox(godot::Vector3 size, godot::Color color) {
   return staticBody;
 }
 
+Tower::Tower(TowerVariant tower) : tower(tower) {}
+
+struct TowerBoxVisitor {
+  auto operator()(TestTower0 tower) -> godot::StaticBody3D * {
+    return CreateTowerBox(godot::Vector3{20, 20, 20}, godot::Color{1, 0, 1});
+  };
+  auto operator()(TestTower1 tower) -> godot::StaticBody3D * {
+    return CreateTowerBox(godot::Vector3{20, 20, 20}, godot::Color{0, 1, 1});
+  };
+};
+
 auto Tower::_ready() -> void {
   connect("body_entered", godot::Callable(this, "on_enemy_entered"));
   connect("body_exited", godot::Callable(this, "on_enemy_exited"));
@@ -59,7 +72,9 @@ auto Tower::_ready() -> void {
 
   add_child(collision3D);
 
-  auto *box = CreateTowerBox(godot::Vector3{20, 20, 20}, godot::Color{1, 0, 1});
+  // auto *box = CreateTowerBox(godot::Vector3{20, 20, 20}, godot::Color{1, 0,
+  // 1});
+  auto *box = std::visit(TowerBoxVisitor{}, tower.GetType());
   add_child(box);
 
   reloadTimer = memnew(godot::Timer);

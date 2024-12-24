@@ -3,6 +3,7 @@
 #define TOWERHPP
 
 #include "Enemy.hpp"
+#include "TowerType.hpp"
 #include "godot_cpp/classes/node3d.hpp"
 #include "godot_cpp/classes/timer.hpp"
 #include <functional>
@@ -18,6 +19,8 @@ protected:
   static auto _bind_methods() -> void;
 
 public:
+  Tower() = default;
+  explicit Tower(TowerVariant tower);
   auto _ready() -> void override;
   auto _physics_process(double delta) -> void override;
 
@@ -36,6 +39,7 @@ private:
   godot::Timer *reloadTimer = nullptr;
 
 private:
+  TowerType tower;
   std::unordered_set<std::uint64_t> enemiesInArea;
 
   std::optional<std::reference_wrapper<Enemy>> target;
