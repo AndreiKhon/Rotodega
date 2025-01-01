@@ -20,10 +20,10 @@
 namespace game {
 
 auto Tower::_bind_methods() -> void {
-  godot::ClassDB::bind_method(godot::D_METHOD("on_enemy_entered", "enemy"),
-                              &Tower::on_enemy_entered);
-  godot::ClassDB::bind_method(godot::D_METHOD("on_enemy_exited", "enemy"),
-                              &Tower::on_enemy_exit);
+  godot::ClassDB::bind_method(godot::D_METHOD("on_area_entered", "enemy"),
+                              &Tower::on_area_entered);
+  godot::ClassDB::bind_method(godot::D_METHOD("on_area_exited", "enemy"),
+                              &Tower::on_area_exit);
 
   godot::ClassDB::bind_method(godot::D_METHOD("on_reload_finished"),
                               &Tower::on_reload_finished);
@@ -59,8 +59,8 @@ struct TowerBoxVisitor {
 };
 
 auto Tower::_ready() -> void {
-  connect("body_entered", godot::Callable(this, "on_enemy_entered"));
-  connect("body_exited", godot::Callable(this, "on_enemy_exited"));
+  connect("area_entered", godot::Callable(this, "on_area_entered"));
+  connect("area_exited", godot::Callable(this, "on_area_exited"));
 
   constexpr float radius = 100;
 
@@ -98,15 +98,15 @@ auto Tower::_physics_process(double delta) -> void {
   ShootTarget();
 }
 
-auto Tower::on_enemy_entered(godot::Node3D *body) -> void {
-  auto *parent = body->get_parent();
+auto Tower::on_area_entered(godot::Node3D *area) -> void {
+  auto *parent = area->get_parent();
   if (parent->is_class("Enemy")) {
     auto id = parent->get_instance_id();
     enemiesInArea.emplace(id);
   }
 }
 
-auto Tower::on_enemy_exit(godot::Node3D *body) -> void {
+auto Tower::on_area_exit(godot::Node3D *body) -> void {
   auto *parent = body->get_parent();
   if (parent->is_class("Enemy")) {
     auto id = parent->get_instance_id();

@@ -6,13 +6,16 @@
 #include "godot_cpp/classes/box_shape3d.hpp"
 #include "godot_cpp/classes/collision_shape3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
+#include "godot_cpp/classes/packed_scene.hpp"
 #include "godot_cpp/classes/random_number_generator.hpp"
 #include "godot_cpp/classes/ref.hpp"
+#include "godot_cpp/classes/resource_loader.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/core/object.hpp"
 #include "godot_cpp/variant/callable.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
+#include "helpers.hpp"
 #include <algorithm>
 #include <variant>
 
@@ -53,20 +56,21 @@ godot::StaticBody3D *CreateBoxEnemy(godot::Vector3 size, godot::Color color) {
 }
 
 auto Enemy::_ready() -> void {
+  auto area3D = CreateAreaBox(godot::Vector3{10, 10, 10});
+  add_child(area3D);
 
-  godot::Ref<godot::RandomNumberGenerator> rng;
-  rng.instantiate();
-  auto *staticBody = CreateBoxEnemy(
-      {10, 10, 10}, {rng->randfn(), rng->randfn(), rng->randfn()});
+  auto *loader = godot::ResourceLoader::get_singleton();
+  auto modelPath = enemy.GetModelPath();
+  godot::Ref<godot::PackedScene> model = loader->load(modelPath);
+  add_child(model->instantiate());
 
-  add_child(staticBody);
   add_to_group("Enemy");
 
   set_gravity_scale(0);
 
   auto hp = enemy.GetHP();
   hpBar = memnew(HitPointsBar(hp));
-  staticBody->add_child(hpBar);
+  add_child(hpBar);
   hpBar->set_position(godot::Vector3{0, 20, 0});
 }
 

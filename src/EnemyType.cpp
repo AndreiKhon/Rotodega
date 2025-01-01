@@ -35,6 +35,16 @@ auto EnemyType::SetSpeed(double speed) -> void {
       std::visit(SetEnemySpeedVisitor{}, enemy, std::variant<double>(speed));
 }
 
+struct GetEnemyModelPathVisitor {
+  auto operator()(BasicEnemy auto enemy) -> const char * {
+    return "res://test_enemy.glb";
+  }
+};
+auto EnemyType::GetModelPath() -> const char *const {
+  auto path = std::visit(GetEnemyModelPathVisitor{}, enemy);
+  return path;
+}
+
 struct ApplyEffectOnEnemy {
   auto operator()(BasicEnemy auto enemy, Slow effect) -> EnemyVariant {
     enemy.speed *= (100.0 - effect.value) / 100.0;

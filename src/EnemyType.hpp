@@ -19,6 +19,7 @@ public:
 
   auto GetSpeed() -> double const;
   auto SetSpeed(double speed) -> void;
+  auto GetModelPath() -> const char *const;
 
   auto ApplyEffect(EffectType effect) -> void;
 

@@ -25,8 +25,8 @@ public:
   auto _physics_process(double delta) -> void override;
 
 private:
-  auto on_enemy_entered(godot::Node3D *enemy) -> void;
-  auto on_enemy_exit(godot::Node3D *enemy) -> void;
+  auto on_area_entered(godot::Node3D *enemy) -> void;
+  auto on_area_exit(godot::Node3D *enemy) -> void;
 
   auto on_reload_finished() -> void;
 
