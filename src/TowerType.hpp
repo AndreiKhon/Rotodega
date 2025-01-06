@@ -28,6 +28,8 @@ public:
   auto GetEffects() -> EffectVector const;
   auto GetCrits() -> CriticalChance const;
 
+  auto GetModelPath() -> const char* const;
+
 private:
   TowerVariant tower;
 };

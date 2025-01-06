@@ -6,6 +6,8 @@
 #include "godot_cpp/classes/collision_shape3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/node3d.hpp"
+#include "godot_cpp/classes/packed_scene.hpp"
+#include "godot_cpp/classes/resource_loader.hpp"
 #include "godot_cpp/classes/sphere_shape3d.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
@@ -13,6 +15,7 @@
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/core/object.hpp"
 #include "godot_cpp/variant/vector3.hpp"
+#include "helpers.hpp"
 #include <functional>
 #include <limits>
 #include <optional>
@@ -69,13 +72,12 @@ auto Tower::_ready() -> void {
   shape3D.instantiate();
   shape3D->set_radius(radius);
   collision3D->set_shape(shape3D);
-
   add_child(collision3D);
 
-  // auto *box = CreateTowerBox(godot::Vector3{20, 20, 20}, godot::Color{1, 0,
-  // 1});
-  auto *box = std::visit(TowerBoxVisitor{}, tower.GetType());
-  add_child(box);
+  auto *loader = godot::ResourceLoader::get_singleton();
+  auto modelPath = tower.GetModelPath();
+  godot::Ref<godot::PackedScene> model = loader->load(modelPath);
+  add_child(model->instantiate());
 
   reloadTimer = memnew(godot::Timer);
   reloadTimer->set_wait_time(1);

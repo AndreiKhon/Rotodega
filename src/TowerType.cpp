@@ -63,4 +63,15 @@ auto TowerType::GetCrits() -> CriticalChance const {
   return crits;
 }
 
+struct GetTowerModelPathVisitor {
+  auto operator()(BasicTower auto tower) -> const char * {
+    return "res://test_enemy.glb";
+  }
+};
+
+auto TowerType::GetModelPath() -> const char *const {
+  auto path = std::visit(GetTowerModelPathVisitor{}, tower);
+  return path;
+}
+
 } // namespace game
